@@ -28,6 +28,10 @@ jobs:
 
       - name: Commit the new capsule
         if: steps.entry.outputs.status == 'added'
+        env:
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           git config user.name "James Cafe Machine"
           git config user.email "github-actions[bot]@users.noreply.github.com"
