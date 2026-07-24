@@ -1,0 +1,21 @@
+name: James Cafe Giveaway Entry
+description: Add your name to the capsule machine
+title: "[ENTRY] "
+labels:
+  - giveaway-entry
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## One last turn of the handle! / あと一回ハンドルを回すだけ！
+
+        Your name is already in the title. Submit this issue and the machine will add your capsule automatically.
+
+        お名前はタイトルに入力されています。このIssueを送信すると、カプセルが自動的に追加されます。
+  - type: checkboxes
+    id: consent
+    attributes:
+      label: Entry confirmation / 応募の確認
+      options:
+        - label: I would like to enter the James Cafe coffee giveaway. / ジェームズ・カフェのコーヒー抽選会に応募します。
+          required: true

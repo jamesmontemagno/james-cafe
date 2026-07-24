@@ -1,0 +1,59 @@
+name: Add giveaway capsule
+
+on:
+  issues:
+    types: [opened]
+
+concurrency:
+  group: giveaway-entry-queue
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  add-entry:
+    if: startsWith(github.event.issue.title, '[ENTRY] ')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the capsule data
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Process entry
+        id: entry
+        env:
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: node scripts/process-entry.mjs
+
+      - name: Commit the new capsule
+        if: steps.entry.outputs.status == 'added'
+        run: |
+          git config user.name "James Cafe Machine"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/entries.json
+          git commit -m "Add ${{ steps.entry.outputs.name }} to the capsule machine"
+          git push
+
+      - name: Confirm the entry
+        if: steps.entry.outputs.status == 'added'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh issue comment "$ISSUE_NUMBER" --body "☕ Capsule added! Your name will appear in the machine in about a minute. / カプセルを追加しました！約1分でマシンにお名前が表示されます。"
+          gh issue close "$ISSUE_NUMBER" --reason completed
+
+      - name: Explain a rejected entry
+        if: steps.entry.outputs.status != 'added'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          MESSAGE: ${{ steps.entry.outputs.message }}
+        run: |
+          gh issue comment "$ISSUE_NUMBER" --body "This entry could not be added: $MESSAGE / この応募は追加できませんでした。"
+          gh issue close "$ISSUE_NUMBER" --reason not_planned
